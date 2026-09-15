@@ -1,0 +1,15 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+
+build/
+dist/
+*.egg-info/
+
+logs/*.log
+
+data/bronze/
+data/silver/
+data/gold/
+
+.vscode/

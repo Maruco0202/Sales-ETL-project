@@ -1,0 +1,7 @@
+source_path: data//source//data.csv
+
+bronze_path: data//bronze
+
+silver_path: data//silver
+
+gold_path: data//gold

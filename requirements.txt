@@ -1,0 +1,5 @@
+pyspark==3.5.1
+pytest
+pyyaml
+pandas
+pyarrow
