@@ -70,6 +70,7 @@ def main():
     df = silver.remove_negative_sales(df)
     df = silver.remove_duplicate_row_ids(df)
     df = silver.remove_null_customer_names(df)
+    df = silver.remove_future_order_dates(df)
 
     silver.write_silver(df)
 

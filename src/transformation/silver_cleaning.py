@@ -1,4 +1,8 @@
-from pyspark.sql.functions import col
+from pyspark.sql.functions import (
+    col,
+    to_date,
+    current_date
+)
 
 from src.utils.spark_session import SparkSessionManager
 from src.utils.config_reader import ConfigReader
@@ -183,6 +187,29 @@ class SilverCleaning:
 
         return cleaned_df
     
+    #8. Remove records with future order dates
+
+    def remove_future_order_dates(self, df):
+
+        before_count = df.count()
+
+        cleaned_df = (
+            df.filter(
+                to_date(
+                    col("order_date"),
+                    "dd-MM-yyyy"
+                ) <= current_date()
+            )
+        )
+
+        after_count = cleaned_df.count()
+
+        print(
+            f"8. Removed {before_count - after_count} records with Future Order Dates"
+        )
+
+        return cleaned_df
+
     #Export the cleaned DataFrame to Silver Layer
     def write_silver(self, df):
 
@@ -222,6 +249,7 @@ if __name__ == "__main__":
     df = silver.remove_negative_sales(df)
     df = silver.remove_duplicate_row_ids(df)
     df = silver.remove_null_customer_names(df)
+    df = silver.remove_future_order_dates(df)
     silver.write_silver(df)
     print(
         f"\nSilver Record Count : {df.count()}" ) 

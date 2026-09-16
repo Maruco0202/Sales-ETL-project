@@ -48,3 +48,62 @@ class TestSilverCleaning:
         cleaned_df = silver.remove_duplicate_row_ids(df)
 
         assert cleaned_df.count() <= df.count()
+
+    def test_remove_future_order_dates(self):
+
+        silver = SilverCleaning()
+
+        df = silver.read_bronze()
+
+        cleaned_df = silver.remove_future_order_dates(df)
+
+        assert cleaned_df.count() < df.count()
+
+    def test_remove_invalid_countries(self):
+
+        silver = SilverCleaning()
+
+        df = silver.read_bronze()
+
+        cleaned_df = (
+            silver.remove_invalid_countries(df)
+        )
+
+        assert cleaned_df.count() < df.count()
+
+
+    def test_remove_invalid_ship_modes(self):
+
+        silver = SilverCleaning()
+
+        df = silver.read_bronze()
+
+        cleaned_df = (
+            silver.remove_invalid_ship_modes(df)
+        )
+
+        assert cleaned_df.count() < df.count()
+
+    def test_remove_negative_sales(self):
+
+        silver = SilverCleaning()
+
+        df = silver.read_bronze()
+
+        cleaned_df = (
+            silver.remove_negative_sales(df)
+        )
+
+        assert cleaned_df.count() < df.count()
+
+    def test_remove_null_customer_names(self):
+
+        silver = SilverCleaning()
+
+        df = silver.read_bronze()
+
+        cleaned_df = (
+            silver.remove_null_customer_names(df)
+        )
+
+        assert cleaned_df.count() < df.count()        

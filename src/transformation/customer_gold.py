@@ -5,7 +5,9 @@ from pyspark.sql.functions import (
     date_sub,
     count,
     when,
-    lit
+    lit,
+    to_date,
+    current_date
 )
 
 from src.utils.spark_session import SparkSessionManager
@@ -47,8 +49,21 @@ class CustomerGold:
 
     def build_customer_gold(self, df):
 
+        # Convert order_date from string to date
+        df = df.withColumn(
+            "order_date",
+            to_date(
+                col("order_date"),
+                "dd-MM-yyyy"
+            )
+        )
+
+        # Get latest VALID business date
         latest_order_date = (
-            df.selectExpr(
+            df.filter(
+                col("order_date") <= current_date()
+            )
+            .selectExpr(
                 "max(order_date) as max_date"
             )
             .collect()[0]["max_date"]
@@ -126,6 +141,7 @@ class CustomerGold:
 
         return customer_gold_df
 
+
     def write_gold(self, df):
 
         (
@@ -159,10 +175,12 @@ if __name__ == "__main__":
     )
 
     customer_gold_df.show(
-        5,
+        50,
         False
     )
 
     gold.write_gold(
         customer_gold_df
     )
+
+   
