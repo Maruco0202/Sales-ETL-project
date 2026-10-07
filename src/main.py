@@ -63,18 +63,31 @@ def main():
 
     df = silver.read_bronze()
 
-    df = silver.remove_null_order_ids(df)
-    df = silver.remove_null_product_ids(df)
-    df = silver.remove_invalid_countries(df)
-    df = silver.remove_invalid_ship_modes(df)
-    df = silver.remove_negative_sales(df)
-    df = silver.remove_duplicate_row_ids(df)
-    df = silver.remove_null_customer_names(df)
-   
+    # Reject records with NULL order_id
+    df = silver.reject_null_order_ids(df)
+
+    # Flag records with missing product_id
+    df = silver.handle_null_product_ids(df)
+
+    # Replace invalid countries
+    df = silver.handle_invalid_countries(df)
+
+    # Replace invalid ship modes
+    df = silver.handle_invalid_ship_modes(df)
+
+    # Flag negative sales
+    df = silver.handle_negative_sales(df)
+
+    # Remove duplicate row_ids
+    df = silver.deduplicate_row_ids(df)
+
+    # Replace null customer names
+    df = silver.handle_null_customer_names(df)
+
+    # Reject future order dates
+    df = silver.reject_future_order_dates(df)
 
     silver.write_silver(df)
-
-    print("Silver Cleaning Completed")
 
     print("Silver Cleaning Completed")
 
