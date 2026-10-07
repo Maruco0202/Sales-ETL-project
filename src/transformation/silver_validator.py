@@ -88,7 +88,7 @@ class SilverValidator:
                 [
                     f"Null_{column_name}",
                     null_count,
-                    "Reject"
+                    
                 ]
             )
 
@@ -117,7 +117,7 @@ class SilverValidator:
             [
                 "Duplicate_Row_ID",
                 duplicate_count,
-                "Reject"
+                
             ]
         )
 
@@ -156,7 +156,7 @@ class SilverValidator:
             [
                 "Invalid_Country",
                 invalid_count,
-                "Quarantine"
+               
             ]
         )
 
@@ -195,7 +195,7 @@ class SilverValidator:
             [
                 "Invalid_Ship_Mode",
                 invalid_count,
-                "Quarantine"
+               
             ]
         )
 
@@ -222,7 +222,7 @@ class SilverValidator:
             [
                 "Future_Order_Date",
                 future_count,
-                "Quarantine"
+                
             ]
         )
 
@@ -250,7 +250,7 @@ class SilverValidator:
             [
                 "Ship_Date_Before_Order_Date",
                 invalid_count,
-                "Warning"
+                
             ]
         )
 
@@ -280,7 +280,7 @@ class SilverValidator:
                 [
                     "Invalid_Order_Date_Format",
                     invalid_Format_count,
-                    "Reject"
+                    
                 ]
 
            ) 
@@ -312,7 +312,7 @@ class SilverValidator:
             [
                 "Invalid_Ship_Date_Format",
                 invalid_count,
-                "Reject"
+              
             ]
         )
 
@@ -339,7 +339,7 @@ class SilverValidator:
             [
                 "Negative_Sales",
                 negative_count,
-                "Quarantine"
+               
             ]
         )
 
@@ -366,7 +366,7 @@ class SilverValidator:
             [
                 "Invalid_Quantity",
                 invalid_quantity_count,
-                "Reject"
+                
             ]
         )
 
@@ -394,7 +394,7 @@ class SilverValidator:
             [
                 "Blank_Customer_Name",
                 blank_count,
-                "Warning"
+               
             ]
         )
         
@@ -421,7 +421,7 @@ class SilverValidator:
             [
                 "Invalid_Customer_ID",
                 invalid_count,
-                "Reject"
+                
             ]
         )
 
@@ -451,7 +451,6 @@ class SilverValidator:
             [
                 "Invalid_Product_ID",
                 invalid_count,
-                "Reject"
             ]
         )       
 
@@ -496,7 +495,6 @@ class SilverValidator:
             [
                 "Missing_Columns",
                 len(missing_columns),
-                "Reject"
             ]
         )
 
@@ -505,14 +503,20 @@ class SilverValidator:
 
     def generate_quality_report(self):
 
+        import os
         import pandas as pd
+
+        os.makedirs(
+            "data/reports",
+            exist_ok=True
+        )
 
         report_df = pd.DataFrame(
             self.quality_results,
             columns=[
                 "Rule_Name",
                 "Error_Count",
-                "Severity"
+
             ]
         )
 
@@ -579,3 +583,5 @@ if __name__ == "__main__":
     validator.validate_schema(df)
 
     validator.generate_quality_report()
+
+  
