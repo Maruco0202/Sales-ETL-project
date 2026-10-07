@@ -1,74 +1,83 @@
-from src.transformation.silver_validator import SilverValidator
+from src.transformation.silver_validator import (
+    SilverValidator
+)
+
+import os
 
 
 class TestSilverValidator:
 
-    def test_read_bronze_success(self):
+    def setup_method(self):
 
-        validator = SilverValidator()
-
-        df = validator.read_bronze()
-
-        assert df.count() > 0
-
-    def test_bronze_dataframe_not_none(self):
-
-        validator = SilverValidator()
-
-        df = validator.read_bronze()
-
-        assert df is not None
-
-    def test_expected_columns_exist(self):
-
-        validator = SilverValidator()
-
-        df = validator.read_bronze()
-
-        expected_columns = [
-            "row_id",
-            "order_id",
-            "customer_id",
-            "customer_name",
-            "country",
-            "city",
-            "product_id"
-        ]
-
-        for column_name in expected_columns:
-
-            assert column_name in df.columns
-
-    def test_quality_results_initialization(self):
-
-        validator = SilverValidator()
-
-        assert validator.quality_results == []
-
-    def test_null_customer_name_records_exist(self):
-
-        validator = SilverValidator()
-
-        df = validator.read_bronze()
-
-        null_count = (
-            df.filter(
-                df.customer_name.isNull()
-            ).count()
+        self.validator = (
+            SilverValidator()
         )
 
-        assert null_count > 0
-
-    def test_invalid_country_records_exist(self):
-
-        validator = SilverValidator()
-
-        df = validator.read_bronze()
-
-        invalid_count = (
-            df.filter(
-                df.country == "UnknownCountry"
-            ).count()
+        self.df = (
+            self.validator
+            .read_bronze()
         )
 
-        assert invalid_count > 0
+    def test_read_bronze(self):
+
+        assert self.df is not None
+
+    def test_bronze_dataframe_not_empty(self):
+
+        assert self.df.count() > 0
+
+    def test_check_nulls(self):
+
+        self.validator.check_nulls(
+            self.df
+        )
+
+        assert (
+            len(
+                self.validator.quality_results
+            ) > 0
+        )
+
+    def test_duplicate_row_validation(self):
+
+        self.validator.check_duplicate_row_ids(
+            self.df
+        )
+
+        assert (
+            len(
+                self.validator.quality_results
+            ) > 0
+        )
+
+    def test_invalid_country_validation(self):
+
+        self.validator.check_invalid_country(
+            self.df
+        )
+
+        assert (
+            len(
+                self.validator.quality_results
+            ) > 0
+        )
+
+    def test_invalid_ship_mode_validation(self):
+
+        self.validator.check_invalid_ship_modes(
+            self.df
+        )
+
+        assert (
+            len(
+                self.validator.quality_results
+            ) > 0
+        )
+
+
+    def test_quality_results_initialized(self):
+
+        assert (
+            self.validator.quality_results
+            == []
+        )

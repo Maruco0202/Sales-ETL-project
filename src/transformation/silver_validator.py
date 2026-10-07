@@ -4,6 +4,7 @@ from src.utils.spark_session import SparkSessionManager
 from src.utils.config_reader import ConfigReader
 from src.utils.logger import get_logger
 from src.utils.exception import PipelineException
+import sys
 
 
 class SilverValidator:
@@ -46,7 +47,11 @@ class SilverValidator:
                 f"Error reading Bronze Layer: {str(e)}"
             )
 
-            raise PipelineException(str(e))
+            raise PipelineException(
+                e,
+                sys,
+                "Silver Validation"
+            )
 
     #Errors
 
@@ -80,8 +85,13 @@ class SilverValidator:
             )
 
             self.quality_results.append(
-                [f"Null_{column_name}", null_count]
+                [
+                    f"Null_{column_name}",
+                    null_count,
+                    "Reject"
+                ]
             )
+
 
     #2. Checking for Duplicate Row IDs
     def check_duplicate_row_ids(self, df):
@@ -104,7 +114,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Duplicate_Row_ID", duplicate_count]
+            [
+                "Duplicate_Row_ID",
+                duplicate_count,
+                "Reject"
+            ]
         )
 
     #3. Checking for Invalid Countries
@@ -118,13 +132,11 @@ class SilverValidator:
 
         print("3. Checking Invalid Countries:-")
 
-        valid_countries = [
-            "India",
-            "USA",
-            "UK",
-            "Canada",
-            "Germany"
-        ]
+        valid_countries = (
+            self.config[
+                "valid_countries"
+            ]
+        )
 
         invalid_count = (
             df.filter(
@@ -141,7 +153,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Invalid_Country", invalid_count]
+            [
+                "Invalid_Country",
+                invalid_count,
+                "Quarantine"
+            ]
         )
 
     #4. Checking for Invalid Ship Modes
@@ -155,12 +171,11 @@ class SilverValidator:
 
         print("4. Checking Invalid Ship Modes:-")
 
-        valid_ship_modes = [
-            "First Class",
-            "Second Class",
-            "Standard Class",
-            "Same Day"
-        ]
+        valid_ship_modes = (
+            self.config[
+                "valid_ship_modes"
+            ]
+        )
 
         invalid_count = (
             df.filter(
@@ -177,7 +192,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Invalid_Ship_Mode", invalid_count]
+            [
+                "Invalid_Ship_Mode",
+                invalid_count,
+                "Quarantine"
+            ]
         )
 
     #5. Date Quality Checks
@@ -200,7 +219,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Future_Order_Date", future_count]
+            [
+                "Future_Order_Date",
+                future_count,
+                "Quarantine"
+            ]
         )
 
     def check_invalid_ship_dates(self, df):
@@ -224,7 +247,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Ship_Date_Before_Order_Date", invalid_count]
+            [
+                "Ship_Date_Before_Order_Date",
+                invalid_count,
+                "Warning"
+            ]
         )
 
     def check_invalid_order_date_format(self, df):
@@ -250,8 +277,13 @@ class SilverValidator:
             )
 
         self.quality_results.append(
-            ["Invalid_Order_Date_Format", invalid_Format_count]
-        )    
+                [
+                    "Invalid_Order_Date_Format",
+                    invalid_Format_count,
+                    "Reject"
+                ]
+
+           ) 
 
     def check_invalid_ship_date_format(self, df):
 
@@ -277,7 +309,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Invalid_Ship_Date_Format", invalid_count]
+            [
+                "Invalid_Ship_Date_Format",
+                invalid_count,
+                "Reject"
+            ]
         )
 
     #6. Checking for Negative Sales Amounts
@@ -300,9 +336,13 @@ class SilverValidator:
         )    
 
         self.quality_results.append(
-            ["Negative_Sales", negative_count]
+            [
+                "Negative_Sales",
+                negative_count,
+                "Quarantine"
+            ]
         )
-        
+
     #7. Checking for Invalid Quantity
     def check_invalid_quantity(self, df):
 
@@ -323,7 +363,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Invalid_Quantity", invalid_quantity_count]
+            [
+                "Invalid_Quantity",
+                invalid_quantity_count,
+                "Reject"
+            ]
         )
 
     #8. Blank Customer Names
@@ -347,7 +391,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Blank_Customer_Name", blank_count]
+            [
+                "Blank_Customer_Name",
+                blank_count,
+                "Warning"
+            ]
         )
         
     #9. Customer ID Format Validation
@@ -370,7 +418,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Invalid_Customer_ID", invalid_count]
+            [
+                "Invalid_Customer_ID",
+                invalid_count,
+                "Reject"
+            ]
         )
 
     #10. Product ID Format Validation
@@ -396,7 +448,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Invalid_Product_ID", invalid_count]
+            [
+                "Invalid_Product_ID",
+                invalid_count,
+                "Reject"
+            ]
         )       
 
 
@@ -437,7 +493,11 @@ class SilverValidator:
         )
 
         self.quality_results.append(
-            ["Missing_Columns", len(missing_columns)]
+            [
+                "Missing_Columns",
+                len(missing_columns),
+                "Reject"
+            ]
         )
 
 
@@ -451,7 +511,8 @@ class SilverValidator:
             self.quality_results,
             columns=[
                 "Rule_Name",
-                "Error_Count"
+                "Error_Count",
+                "Severity"
             ]
         )
 
@@ -464,6 +525,8 @@ class SilverValidator:
             index=False
         )
 
+        
+        
         print(
             "\nData Quality Report Generated Successfully"
         )

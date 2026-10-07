@@ -1,3 +1,4 @@
+
 from pyspark.sql.functions import (
     current_timestamp,
     current_date,
@@ -8,6 +9,7 @@ from src.utils.spark_session import SparkSessionManager
 from src.utils.config_reader import ConfigReader
 from src.utils.logger import get_logger
 from src.utils.exception import PipelineException
+import sys
 
 
 class BronzeLoader:
@@ -45,7 +47,11 @@ class BronzeLoader:
                 f"Error while reading source file: {str(e)}"
             )
 
-            raise PipelineException(str(e))
+            raise PipelineException(
+                str(e),
+                sys,
+                "Bronze Layer"
+            )
 
     def add_metadata(self, df):
 
@@ -93,7 +99,11 @@ class BronzeLoader:
                 f"Error writing Bronze Layer: {str(e)}"
             )
 
-            raise PipelineException(str(e))   
+            raise PipelineException(
+                str(e),
+                sys,
+                "Bronze Layer"
+            )   
 
 if __name__ == "__main__":
 

@@ -1,14 +1,15 @@
 from pyspark.sql.functions import (
     col,
     to_date,
-    current_date
+    current_date,
+    when
 )
 
 from src.utils.spark_session import SparkSessionManager
 from src.utils.config_reader import ConfigReader
 from src.utils.logger import get_logger
 from src.utils.exception import PipelineException
-
+import sys
 
 class SilverCleaning:
 
@@ -39,12 +40,29 @@ class SilverCleaning:
 
         except Exception as e:
 
-            raise PipelineException(str(e))
+            raise PipelineException(
+                e,
+                sys,
+                "Silver Cleaning"
+            )
 
-    #1. Remove records with NULL order_id    
-    def remove_null_order_ids(self, df):
+    #1. Reject records with NULL order_id    
+    def reject_null_order_ids(self, df):
 
-        before_count = df.count()
+        rejected_df = (
+            df.filter(
+                col("order_id").isNull()
+            )
+        )
+
+        rejected_count = (
+            rejected_df.count()
+        )
+
+        self.write_rejected_data(
+            rejected_df,
+            "null_order_ids"
+        )
 
         cleaned_df = (
             df.filter(
@@ -52,107 +70,139 @@ class SilverCleaning:
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"1. Removed {before_count - after_count} records with NULL order_id"
+            f"1. Rejected {rejected_count} records with NULL order_id"
         )
 
         return cleaned_df
 
-    #2. Remove records with NULL product_id
-    def remove_null_product_ids(self, df):
+    #2. Flag records with NULL product_id
+    def handle_null_product_ids(self, df):
 
-        before_count = df.count()
-
-        cleaned_df = (
+        null_count = (
             df.filter(
-                col("product_id").isNotNull()
+                col("product_id").isNull()
+            ).count()
+        )
+
+        review_df = (
+            df.withColumn(
+                "product_review_flag",
+                when(
+                    col("product_id").isNull(),
+                    "MISSING_PRODUCT_ID"
+                ).otherwise(
+                    "VALID"
+                )
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"2. Removed {before_count - after_count} records with NULL product_id"
+            f"2. Flagged {null_count} records with missing product_id for review"
         )
 
-        return cleaned_df
+        return review_df
 
     #3. Remove records with invalid countries
-    def remove_invalid_countries(self, df):
+    def handle_invalid_countries(self, df):
 
-        valid_countries = [
-            "India",
-            "USA",
-            "UK",
-            "Canada",
-            "Germany"
-        ]
+        valid_countries = (
+            self.config[
+                "valid_countries"
+            ]
+        )
 
-        before_count = df.count()
+        invalid_count = (
+            df.filter(
+                ~col("country")
+                .isin(valid_countries)
+            ).count()
+        )
 
         cleaned_df = (
-            df.filter(
-                col("country").isin(valid_countries)
+            df.withColumn(
+                "country",
+                when(
+                    ~col("country")
+                    .isin(valid_countries),
+                    "UNKNOWN_COUNTRY"
+                ).otherwise(
+                    col("country")
+                )
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"3. Removed {before_count - after_count} records with Invalid Country"
+            f"3. Replaced {invalid_count} invalid country values with UNKNOWN_COUNTRY"
         )
 
         return cleaned_df
 
     #4. Remove records with invalid ship modes
-    def remove_invalid_ship_modes(self, df):
+    def handle_invalid_ship_modes(self, df):
 
-        valid_ship_modes = [
-            "First Class",
-            "Second Class",
-            "Standard Class",
-            "Same Day"
-        ]
+        valid_ship_modes = (
+            self.config[
+                "valid_ship_modes"
+            ]
+        )
 
-        before_count = df.count()
+        invalid_count = (
+            df.filter(
+                ~col("ship_mode")
+                .isin(valid_ship_modes)
+            ).count()
+        )
 
         cleaned_df = (
-            df.filter(
-                col("ship_mode").isin(valid_ship_modes)
+            df.withColumn(
+                "ship_mode",
+                when(
+                    ~col("ship_mode")
+                    .isin(valid_ship_modes),
+                    "UNKNOWN_SHIP_MODE"
+                ).otherwise(
+                    col("ship_mode")
+                )
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"4. Removed {before_count - after_count} records with Invalid Ship Mode"
+            f"4. Replaced {invalid_count} invalid ship mode values with UNKNOWN_SHIP_MODE"
         )
 
         return cleaned_df
 
-    #5. Remove records with negative sales
-    def remove_negative_sales(self, df):
+    #5. Flag negative sales for review
 
-        before_count = df.count()
+    def handle_negative_sales(self, df):
+
+        negative_count = (
+            df.filter(
+                col("sales_amount") < 0
+            ).count()
+        )
 
         cleaned_df = (
-            df.filter(
-                col("sales_amount") >= 0
+            df.withColumn(
+                "sales_review_flag",
+                when(
+                    col("sales_amount") < 0,
+                    "REVIEW_REQUIRED"
+                ).otherwise(
+                    "VALID"
+                )
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"5. Removed {before_count - after_count} records with Negative Sales"
+            f"5. Flagged {negative_count} negative sales records for business review"
         )
 
         return cleaned_df
-
-    #6. Remove duplicate row_ids
-    def remove_duplicate_row_ids(self, df):
+    
+    #6. duplicate row_ids
+    def deduplicate_row_ids(self, df):
 
         before_count = df.count()
 
@@ -168,32 +218,57 @@ class SilverCleaning:
 
         return cleaned_df
 
-    #7. Remove records with NULL customer_name
-    def remove_null_customer_names(self, df):
+    #7. records with NULL customer_name
 
-        before_count = df.count()
+    def handle_null_customer_names(self, df):
+
+        null_count = (
+            df.filter(
+                col("customer_name").isNull()
+            ).count()
+        )
 
         cleaned_df = (
-            df.filter(
-                col("customer_name").isNotNull()
+            df.withColumn(
+                "customer_name",
+                when(
+                    col("customer_name").isNull(),
+                    "UNKNOWN_CUSTOMER"
+                ).otherwise(
+                    col("customer_name")
+                )
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"7. Removed {before_count - after_count} records with NULL customer_name"
+            f"7. Replaced {null_count} NULL customer_name values with UNKNOWN_CUSTOMER"
         )
 
         return cleaned_df
     
     #8. Remove records with future order dates
 
-    def remove_future_order_dates(self, df):
+    def reject_future_order_dates(self, df):
 
-        before_count = df.count()
+        rejected_df = (
+            df.filter(
+                to_date(
+                    col("order_date"),
+                    "dd-MM-yyyy"
+                ) > current_date()
+            )
+        )
 
-        cleaned_df = (
+        rejected_count = (
+            rejected_df.count()
+        )
+
+        self.write_rejected_data(
+            rejected_df,
+            "future_order_dates"
+        )
+
+        valid_df = (
             df.filter(
                 to_date(
                     col("order_date"),
@@ -202,14 +277,39 @@ class SilverCleaning:
             )
         )
 
-        after_count = cleaned_df.count()
-
         print(
-            f"8. Removed {before_count - after_count} records with Future Order Dates"
+            f"8. Rejected {rejected_count} records with Future Order Dates"
         )
 
-        return cleaned_df
+        return valid_df
+    
 
+
+    def write_rejected_data(
+        self,
+        rejected_df,
+        folder_name
+    ):
+        """
+        Writes rejected records to
+        rejected layer for auditing.
+        """
+
+        if rejected_df.count() > 0:
+
+            (
+                rejected_df.write
+                .mode("overwrite")
+                .option("header", True)
+                .csv(
+                    f"{self.config['rejected_path']}/{folder_name}"
+                )
+            )
+
+            self.logger.info(
+                f"Rejected records written to {folder_name}"
+            )
+            
     #Export the cleaned DataFrame to Silver Layer
     def write_silver(self, df):
 
@@ -242,15 +342,24 @@ if __name__ == "__main__":
 
     print("\nStarting Silver Cleaning Process:-")
 
-    df = silver.remove_null_order_ids(df)
-    df = silver.remove_null_product_ids(df)
-    df = silver.remove_invalid_countries(df)
-    df = silver.remove_invalid_ship_modes(df)
-    df = silver.remove_negative_sales(df)
-    df = silver.remove_duplicate_row_ids(df)
-    df = silver.remove_null_customer_names(df)
-    df = silver.remove_future_order_dates(df)
+    df = silver.reject_null_order_ids(df)
+
+    df = silver.handle_null_product_ids(df)
+
+    df = silver.handle_invalid_countries(df)
+
+    df = silver.handle_invalid_ship_modes(df)
+
+    df = silver.handle_negative_sales(df)
+
+    df = silver.deduplicate_row_ids(df)
+
+    df = silver.handle_null_customer_names(df)
+
+    df = silver.reject_future_order_dates(df)
+
     silver.write_silver(df)
+
     print(
         f"\nSilver Record Count : {df.count()}" ) 
 

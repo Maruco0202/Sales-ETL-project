@@ -1,13 +1,14 @@
+import sys
+
 from pyspark.sql.functions import (
     col,
     split,
-    max,
-    date_sub,
     count,
     when,
-    lit,
+    date_sub,
     to_date,
-    current_date
+    current_date,
+    lit
 )
 
 from src.utils.spark_session import SparkSessionManager
@@ -20,11 +21,19 @@ class CustomerGold:
 
     def __init__(self):
 
-        self.spark = SparkSessionManager.get_spark_session()
+        self.spark = (
+            SparkSessionManager
+            .get_spark_session()
+        )
 
-        self.config = ConfigReader.load_config()
+        self.config = (
+            ConfigReader
+            .load_config()
+        )
 
-        self.logger = get_logger()
+        self.logger = (
+            get_logger()
+        )
 
     def read_silver(self):
 
@@ -37,7 +46,9 @@ class CustomerGold:
             df = (
                 self.spark.read
                 .parquet(
-                    self.config["silver_path"]
+                    self.config[
+                        "silver_path"
+                    ]
                 )
             )
 
@@ -45,11 +56,14 @@ class CustomerGold:
 
         except Exception as e:
 
-            raise PipelineException(str(e))
+            raise PipelineException(
+                e,
+                sys,
+                "Customer Gold"
+            )
 
     def build_customer_gold(self, df):
 
-        # Convert order_date from string to date
         df = df.withColumn(
             "order_date",
             to_date(
@@ -58,11 +72,13 @@ class CustomerGold:
             )
         )
 
-        # Get latest VALID business date
         latest_order_date = (
+
             df.filter(
-                col("order_date") <= current_date()
+                col("order_date")
+                <= current_date()
             )
+
             .selectExpr(
                 "max(order_date) as max_date"
             )
@@ -99,7 +115,8 @@ class CustomerGold:
 
                 count(
                     when(
-                        col("order_date") >= date_sub(
+                        col("order_date")
+                        >= date_sub(
                             lit(latest_order_date),
                             30
                         ),
@@ -111,7 +128,8 @@ class CustomerGold:
 
                 count(
                     when(
-                        col("order_date") >= date_sub(
+                        col("order_date")
+                        >= date_sub(
                             lit(latest_order_date),
                             180
                         ),
@@ -123,7 +141,8 @@ class CustomerGold:
 
                 count(
                     when(
-                        col("order_date") >= date_sub(
+                        col("order_date")
+                        >= date_sub(
                             lit(latest_order_date),
                             365
                         ),
@@ -136,11 +155,10 @@ class CustomerGold:
                 count("*").alias(
                     "orders_all_time"
                 )
-            )
+         )
         )
 
         return customer_gold_df
-
 
     def write_gold(self, df):
 
@@ -148,9 +166,13 @@ class CustomerGold:
             df.coalesce(1)
             .write
             .mode("overwrite")
-            .parquet(
-                "data/gold/customer_gold"
-            )
+           .parquet(
+               "data/gold/customer_gold"
+           )
+        )
+
+        self.logger.info(
+            "Customer Gold Dataset Written Successfully"
         )
 
         print(
@@ -162,7 +184,9 @@ if __name__ == "__main__":
 
     gold = CustomerGold()
 
-    silver_df = gold.read_silver()
+    silver_df = (
+        gold.read_silver()
+    )
 
     customer_gold_df = (
         gold.build_customer_gold(
@@ -171,16 +195,14 @@ if __name__ == "__main__":
     )
 
     print(
-        f"Customer Gold Records : {customer_gold_df.count()}"
+        f"Customer Gold Record Count : {customer_gold_df.count()}"
     )
 
     customer_gold_df.show(
-        50,
+        5,
         False
     )
 
     gold.write_gold(
         customer_gold_df
     )
-
-   

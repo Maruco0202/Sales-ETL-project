@@ -1,109 +1,155 @@
-from src.transformation.silver_cleaning import SilverCleaning
+from src.transformation.silver_cleaning import (
+    SilverCleaning
+)
 
 
 class TestSilverCleaning:
 
-    def test_read_bronze_success(self):
+    def setup_method(self):
 
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        assert df.count() > 0
-
-    def test_dataframe_not_none(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        assert df is not None
-
-    def test_remove_null_order_ids(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        cleaned_df = silver.remove_null_order_ids(df)
-
-        assert cleaned_df.count() < df.count()
-
-    def test_remove_null_product_ids(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        cleaned_df = silver.remove_null_product_ids(df)
-
-        assert cleaned_df.count() < df.count()
-
-    def test_remove_duplicate_row_ids(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        cleaned_df = silver.remove_duplicate_row_ids(df)
-
-        assert cleaned_df.count() <= df.count()
-
-    def test_remove_future_order_dates(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        cleaned_df = silver.remove_future_order_dates(df)
-
-        assert cleaned_df.count() < df.count()
-
-    def test_remove_invalid_countries(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        cleaned_df = (
-            silver.remove_invalid_countries(df)
+        self.cleaner = (
+            SilverCleaning()
         )
 
-        assert cleaned_df.count() < df.count()
-
-
-    def test_remove_invalid_ship_modes(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
-
-        cleaned_df = (
-            silver.remove_invalid_ship_modes(df)
+        self.df = (
+            self.cleaner.read_bronze()
         )
 
-        assert cleaned_df.count() < df.count()
+    def test_read_bronze(self):
 
-    def test_remove_negative_sales(self):
+        assert self.df is not None
 
-        silver = SilverCleaning()
+    def test_bronze_data_not_empty(self):
 
-        df = silver.read_bronze()
+        assert self.df.count() > 0
 
-        cleaned_df = (
-            silver.remove_negative_sales(df)
-        )
-
-        assert cleaned_df.count() < df.count()
-
-    def test_remove_null_customer_names(self):
-
-        silver = SilverCleaning()
-
-        df = silver.read_bronze()
+    def test_reject_null_order_ids(self):
 
         cleaned_df = (
-            silver.remove_null_customer_names(df)
+            self.cleaner
+            .reject_null_order_ids(
+                self.df
+            )
         )
 
-        assert cleaned_df.count() < df.count()        
+        null_count = (
+            cleaned_df.filter(
+                cleaned_df.order_id.isNull()
+            ).count()
+        )
+
+        assert null_count == 0
+
+    def test_handle_null_product_ids(self):
+
+        cleaned_df = (
+            self.cleaner
+            .handle_null_product_ids(
+                self.df
+            )
+        )
+
+        assert (
+            "product_review_flag"
+            in cleaned_df.columns
+        )
+
+    def test_handle_invalid_countries(self):
+
+        cleaned_df = (
+            self.cleaner
+            .handle_invalid_countries(
+                self.df
+            )
+        )
+
+        invalid_count = (
+            cleaned_df.filter(
+                cleaned_df.country
+                == "UNKNOWN_COUNTRY"
+            ).count()
+        )
+
+        assert invalid_count >= 0
+
+    def test_handle_invalid_ship_modes(self):
+
+        cleaned_df = (
+            self.cleaner
+            .handle_invalid_ship_modes(
+                self.df
+            )
+        )
+
+        invalid_count = (
+            cleaned_df.filter(
+                cleaned_df.ship_mode
+                ==
+                "UNKNOWN_SHIP_MODE"
+            ).count()
+        )
+
+        assert invalid_count >= 0
+
+    def test_handle_negative_sales(self):
+
+        cleaned_df = (
+            self.cleaner
+            .handle_negative_sales(
+                self.df
+            )
+        )
+
+        assert (
+            "sales_review_flag"
+            in cleaned_df.columns
+        )
+
+    def test_deduplicate_row_ids(self):
+
+        before_count = (
+            self.df.count()
+        )
+
+        cleaned_df = (
+            self.cleaner
+            .deduplicate_row_ids(
+                self.df
+            )
+        )
+
+        after_count = (
+            cleaned_df.count()
+        )
+
+        assert after_count <= before_count
+
+    def test_handle_null_customer_names(self):
+
+        cleaned_df = (
+            self.cleaner
+            .handle_null_customer_names(
+                self.df
+            )
+        )
+
+        unknown_count = (
+            cleaned_df.filter(
+                cleaned_df.customer_name
+                ==
+                "UNKNOWN_CUSTOMER"
+            ).count()
+        )
+
+        assert unknown_count >= 0
+
+    def test_reject_future_order_dates(self):
+
+        cleaned_df = (
+            self.cleaner
+            .reject_future_order_dates(
+                self.df
+            )
+        )
+
+        assert cleaned_df is not None

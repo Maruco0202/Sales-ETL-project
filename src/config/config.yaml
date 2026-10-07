@@ -1,7 +1,54 @@
-source_path: data//source//data.csv
+# Data Paths
 
-bronze_path: data//bronze
+source_path: data/source/data.csv
 
-silver_path: data//silver
+source_file_name: data.csv
 
-gold_path: data//gold
+bronze_path: data/bronze
+
+silver_path: data/silver
+
+gold_path: data/gold
+
+rejected_path: data/rejected
+
+
+# Validation Rules
+
+valid_countries:
+
+  - India
+  - USA
+  - UK
+  - Canada
+  - Germany
+
+valid_ship_modes:
+
+  - First Class
+  - Second Class
+  - Standard Class
+  - Same Day
+
+
+# Spark Configuration
+
+spark:
+
+  app_name: Sales_ETL_Pipeline
+
+
+# Logging Configuration
+
+logging:
+
+  level: INFO
+
+
+# Data Quality Thresholds
+
+quality_thresholds:
+
+  max_null_percentage: 10
+
+  max_duplicate_percentage: 5

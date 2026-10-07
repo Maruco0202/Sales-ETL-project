@@ -1,3 +1,5 @@
+import sys
+
 from src.utils.spark_session import SparkSessionManager
 from src.utils.config_reader import ConfigReader
 from src.utils.logger import get_logger
@@ -8,11 +10,19 @@ class SalesGold:
 
     def __init__(self):
 
-        self.spark = SparkSessionManager.get_spark_session()
+        self.spark = (
+            SparkSessionManager
+            .get_spark_session()
+        )
 
-        self.config = ConfigReader.load_config()
+        self.config = (
+            ConfigReader
+            .load_config()
+        )
 
-        self.logger = get_logger()
+        self.logger = (
+            get_logger()
+        )
 
     def read_silver(self):
 
@@ -25,7 +35,9 @@ class SalesGold:
             df = (
                 self.spark.read
                 .parquet(
-                    self.config["silver_path"]
+                    self.config[
+                        "silver_path"
+                    ]
                 )
             )
 
@@ -33,17 +45,18 @@ class SalesGold:
 
         except Exception as e:
 
-            self.logger.error(
-                f"Error reading Silver Layer: {str(e)}"
+            raise PipelineException(
+                e,
+                sys,
+                "Sales Gold"
             )
-
-            raise PipelineException(str(e))
 
     def build_sales_gold(self, df):
 
         sales_gold_df = (
             df.select(
                 "order_id",
+                "customer_id",   # common key
                 "order_date",
                 "ship_date",
                 "ship_mode",
@@ -64,12 +77,12 @@ class SalesGold:
             )
         )
 
-        print(
-            "\nSales Gold Dataset Written Successfully"
-        )
-
         self.logger.info(
             "Sales Gold Dataset Written Successfully"
+        )
+
+        print(
+            "\nSales Gold Dataset Written Successfully"
         )
 
 
@@ -77,21 +90,24 @@ if __name__ == "__main__":
 
     gold = SalesGold()
 
-    silver_df = gold.read_silver()
+    silver_df = (
+        gold.read_silver()
+    )
+
+    sales_gold_df = (
+        gold.build_sales_gold(
+            silver_df
+        )
+    )
 
     print(
-        f"Silver Records : {silver_df.count()}"
+        f"Sales Gold Record Count : {sales_gold_df.count()}"
     )
 
-    sales_gold_df = gold.build_sales_gold(
-        silver_df
+    sales_gold_df.show(
+        5,
+        False
     )
-
-    print(
-        f"Sales Gold Records : {sales_gold_df.count()}"
-    )
-
-    sales_gold_df.show(5, False)
 
     gold.write_gold(
         sales_gold_df
