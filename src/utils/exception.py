@@ -1,17 +1,32 @@
-import sys
+import traceback
 from datetime import datetime
 
 
 class PipelineException(Exception):
+    """
+    Enterprise-grade custom exception for ETL failures.
+    Captures debugging and monitoring information.
+    """
 
     def __init__(
         self,
-        error_message,
+        error,
         error_detail,
         layer="Unknown Layer"
     ):
 
         _, _, exc_tb = error_detail.exc_info()
+
+        self.timestamp = (
+            datetime.now()
+            .strftime("%Y-%m-%d %H:%M:%S")
+        )
+
+        self.layer = layer
+
+        self.error_type = (
+            type(error).__name__
+        )
 
         self.file_name = (
             exc_tb.tb_frame.f_code.co_filename
@@ -25,14 +40,21 @@ class PipelineException(Exception):
             exc_tb.tb_lineno
         )
 
-        self.layer = layer
-
-        self.timestamp = (
-            datetime.now()
-            .strftime("%Y-%m-%d %H:%M:%S")
+        self.error_message = (
+            str(error)
         )
 
-        self.error_message = f"""
+        self.traceback_details = (
+            traceback.format_exc()
+        )
+
+        super().__init__(
+            self.__str__()
+        )
+
+    def __str__(self):
+
+        return f"""
 ==================================================
 PIPELINE EXCEPTION
 ==================================================
@@ -41,21 +63,15 @@ Timestamp     : {self.timestamp}
 
 Layer         : {self.layer}
 
+Error Type    : {self.error_type}
+
 File Name     : {self.file_name}
 
 Function      : {self.function_name}
 
 Line Number   : {self.line_number}
 
-Error Message : {error_message}
+Error Message : {self.error_message}
 
 ==================================================
 """
-
-        super().__init__(
-            self.error_message
-        )
-
-    def __str__(self):
-
-        return self.error_message

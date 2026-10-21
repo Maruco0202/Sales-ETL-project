@@ -1,3 +1,5 @@
+import os
+
 from src.transformation.silver_cleaning import (
     SilverCleaning
 )
@@ -49,10 +51,15 @@ class TestSilverCleaning:
             )
         )
 
-        assert (
-            "product_review_flag"
-            in cleaned_df.columns
+        review_count = (
+            cleaned_df.filter(
+                cleaned_df.product_review_flag
+                ==
+                "MISSING_PRODUCT_ID"
+            ).count()
         )
+
+        assert review_count > 0
 
     def test_handle_invalid_countries(self):
 
@@ -63,14 +70,15 @@ class TestSilverCleaning:
             )
         )
 
-        invalid_count = (
+        unknown_count = (
             cleaned_df.filter(
                 cleaned_df.country
-                == "UNKNOWN_COUNTRY"
+                ==
+                "UNKNOWN_COUNTRY"
             ).count()
         )
 
-        assert invalid_count >= 0
+        assert unknown_count > 0
 
     def test_handle_invalid_ship_modes(self):
 
@@ -81,7 +89,7 @@ class TestSilverCleaning:
             )
         )
 
-        invalid_count = (
+        unknown_count = (
             cleaned_df.filter(
                 cleaned_df.ship_mode
                 ==
@@ -89,7 +97,7 @@ class TestSilverCleaning:
             ).count()
         )
 
-        assert invalid_count >= 0
+        assert unknown_count > 0
 
     def test_handle_negative_sales(self):
 
@@ -100,10 +108,15 @@ class TestSilverCleaning:
             )
         )
 
-        assert (
-            "sales_review_flag"
-            in cleaned_df.columns
+        review_count = (
+            cleaned_df.filter(
+                cleaned_df.sales_review_flag
+                ==
+                "REVIEW_REQUIRED"
+            ).count()
         )
+
+        assert review_count > 0
 
     def test_deduplicate_row_ids(self):
 
@@ -141,7 +154,7 @@ class TestSilverCleaning:
             ).count()
         )
 
-        assert unknown_count >= 0
+        assert unknown_count > 0
 
     def test_reject_future_order_dates(self):
 
@@ -153,3 +166,23 @@ class TestSilverCleaning:
         )
 
         assert cleaned_df is not None
+
+    def test_rejected_null_order_ids_created(self):
+
+        self.cleaner.reject_null_order_ids(
+            self.df
+        )
+
+        assert os.path.exists(
+            "data/rejected/null_order_ids"
+        )
+
+    def test_rejected_future_order_dates_created(self):
+
+        self.cleaner.reject_future_order_dates(
+            self.df
+        )
+
+        assert os.path.exists(
+            "data/rejected/future_order_dates"
+        )

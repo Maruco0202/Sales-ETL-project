@@ -20,30 +20,33 @@ Gold Sales
 Gold Customer
 ```
 
-The project was built using Software Engineering best practices including:
+The solution applies software engineering and production-oriented data engineering practices including:
 
 - Modularization
 - OOP Design
 - Logging
-- Exception Handling
-- Unit Testing
+- Advanced Exception Handling
+- Automated Testing
+- Configuration-Driven Design
 - Packaging
 - CI/CD
 - Data Quality Framework
-- Orchestration
+- Rejected Data Layer
+- Pipeline Orchestration
 
 ---
 
 ## Project Objectives
 
 - Implement Medallion Architecture (Bronze, Silver, Gold)
-- Build Data Quality Validation Framework
+- Build a Data Quality Validation Framework
 - Apply Software Engineering Best Practices
-- Implement Logging and Error Handling
+- Implement Logging and Advanced Error Handling
 - Create Automated Unit Tests
 - Package the project as an installable Python package
 - Implement CI/CD using GitHub Actions
-- Create an orchestrated ETL execution flow
+- Create an Orchestrated ETL Execution Framework
+- Improve Data Quality while minimizing unnecessary data loss
 
 ---
 
@@ -91,6 +94,7 @@ Use_Case_2
 │   ├── bronze/
 │   ├── silver/
 │   ├── gold/
+│   ├── rejected/
 │   └── reports/
 │
 ├── logs/
@@ -117,13 +121,20 @@ Use_Case_2
 
 - Read source CSV
 - Add metadata columns
-- Write Bronze Parquet dataset
+- Store raw data without modification
+- Write Bronze Layer in Parquet format
 
 ### Metadata Columns Added
 
 - ingestion_timestamp
 - load_date
 - source_file_name
+
+### Metadata Purpose
+
+- ingestion_timestamp – Captures exact ingestion timestamp for auditability.
+- load_date – Stores pipeline execution date.
+- source_file_name – Maintains source lineage and traceability.
 
 ### Output
 
@@ -134,6 +145,8 @@ data/bronze/
 ---
 
 ## Silver Validation Layer
+
+Implemented data quality validations before applying any cleaning logic.
 
 ### Completeness Checks
 
@@ -169,7 +182,7 @@ data/bronze/
 
 ### Schema Validation
 
-- Required Column Validation
+- Mandatory Column Validation
 
 ---
 
@@ -186,21 +199,85 @@ Contains:
 - Validation Rule Name
 - Error Count
 
+Example:
+
+```text
+Null Order ID
+Duplicate Row ID
+Invalid Country
+Invalid Ship Mode
+Future Order Date
+Negative Sales
+```
+
 ---
 
 ## Silver Cleaning Layer
 
-### Removed Records
+Instead of blindly deleting all problematic records, business-oriented cleansing strategies were implemented.
 
-- Null Order ID
-- Null Product ID
-- Null Customer Name
-- Invalid Country
-- Invalid Ship Mode
-- Negative Sales Amount
-- Duplicate Row ID
+### Rejected Records
 
-### Clean Silver Dataset
+Records that could not be reliably corrected:
+
+- NULL Order IDs
+- Future Order Dates
+
+Stored in:
+
+```text
+data/rejected/
+```
+
+Examples:
+
+```text
+data/rejected/null_order_ids/
+
+data/rejected/future_order_dates/
+```
+
+### Standardized Attributes
+
+Descriptive attributes were standardized instead of removing entire records:
+
+```text
+Invalid Country
+    ↓
+UNKNOWN_COUNTRY
+
+Invalid Ship Mode
+    ↓
+UNKNOWN_SHIP_MODE
+
+NULL Customer Name
+    ↓
+UNKNOWN_CUSTOMER
+```
+
+### Business Review Flags
+
+Records requiring business review are retained:
+
+```text
+NULL Product ID
+    ↓
+MISSING_PRODUCT_ID
+
+Negative Sales
+    ↓
+REVIEW_REQUIRED
+```
+
+### Deduplication
+
+Duplicate records are removed using:
+
+```python
+dropDuplicates(["row_id"])
+```
+
+### Output
 
 ```text
 data/silver/
@@ -208,15 +285,34 @@ data/silver/
 
 ---
 
+## Rejected Layer
+
+A dedicated rejected layer was implemented to preserve unrecoverable records rather than deleting them permanently.
+
+### Current Rejected Datasets
+
+```text
+data/rejected/
+
+    null_order_ids/
+
+    future_order_dates/
+```
+
 ## Gold Sales Dataset
+
+### Purpose
+
+Business-ready sales reporting dataset.
 
 ### Attributes
 
-- Order ID
-- Order Date
-- Ship Date
-- Ship Mode
-- City
+- order_id
+- customer_id
+- order_date
+- ship_date
+- ship_mode
+- city
 
 ### Output
 
@@ -224,19 +320,31 @@ data/silver/
 data/gold/sales_gold/
 ```
 
+### Common Key
+
+```text
+customer_id
+```
+
+acts as the shared key between Sales Gold and Customer Gold datasets.
+
 ---
 
 ## Gold Customer Dataset
 
+### Purpose
+
+Customer Analytics and KPI Generation.
+
 ### Attributes
 
-- Customer ID
-- First Name
-- Last Name
-- Segment
-- Country
+- customer_id
+- first_name
+- last_name
+- segment
+- country
 
-### Metrics
+### Customer KPIs
 
 - Orders Last 30 Days
 - Orders Last 6 Months
@@ -249,11 +357,25 @@ data/gold/sales_gold/
 data/gold/customer_gold/
 ```
 
+### Common Key
+
+```text
+customer_id
+```
+
+acts as the shared key between Sales Gold and Customer Gold datasets.
+
 ---
 
 ## Logging
 
-Centralized logging implemented using Python Logging.
+Centralized logging framework implemented using Python Logging.
+
+### Features
+
+- File Logging
+- Console Logging
+- YAML-Driven Log Level Configuration
 
 ### Log Levels
 
@@ -261,7 +383,7 @@ Centralized logging implemented using Python Logging.
 - WARNING
 - ERROR
 
-### Log Location
+### Output Location
 
 ```text
 logs/
@@ -269,59 +391,91 @@ logs/
 
 ---
 
-## Error Handling
+## Advanced Exception Handling
 
-Implemented using custom exception handling:
+Implemented a custom ETL exception framework.
 
-```python
-PipelineException
-```
+### Captured Information
 
-Used throughout:
+- Timestamp
+- ETL Layer
+- File Name
+- Function Name
+- Line Number
+- Error Type
+- Root Cause
 
-- Bronze Layer
-- Silver Validation
-- Silver Cleaning
-- Gold Layer
+### Benefits
+
+- Faster Debugging
+- Better Production Support
+- Standardized Error Reporting
 
 ---
 
-## Unit Testing
+## Configuration Driven Design
+
+Project behavior is externalized using:
+
+```text
+src/config/config.yaml
+```
+
+### Configuration Includes
+
+- Data Paths
+- Validation Rules
+- Logging Configuration
+- Spark Configuration
+- Data Quality Thresholds
+- Rejected Layer Configuration
+
+### Benefits
+
+- Reduced Hardcoding
+- Improved Maintainability
+- Easier Environment Migration
+
+---
+
+## Automated Testing
 
 Implemented using PyTest.
 
-### Bronze Tests
+### Utility Layer Tests
 
-- Read Source Success
-- DataFrame Validation
-- Wrong File Path
+- Config Reader
+- Logger
+- Exception Framework
+- Spark Session
+
+### Bronze Layer Tests
+
+- Read Source
 - Metadata Validation
-- Bronze Write Validation
+- Write Validation
+- Wrong Path Validation
 
-### Silver Validator Tests
+### Silver Validation Tests
 
-- Read Bronze
-- Expected Columns Validation
+- Data Quality Validation
+- Country Validation
+- Ship Mode Validation
 - Null Validation
-- Invalid Country Validation
 
 ### Silver Cleaning Tests
 
-- Null Order ID Removal
-- Null Product ID Removal
-- Duplicate Removal
+- Record Rejection
+- Data Standardization
+- Review Flag Generation
+- Deduplication Logic
+- Rejected Layer Validation
 
-### Sales Gold Tests
+### Gold Layer Tests
 
-- Read Silver
-- Gold Data Creation
-- Column Validation
-
-### Customer Gold Tests
-
-- First Name Validation
-- Last Name Validation
-- Customer Metrics Validation
+- Sales Gold Dataset Validation
+- Customer Gold Dataset Validation
+- Customer KPI Validation
 
 ### Test Execution
 
@@ -335,7 +489,7 @@ python -m pytest tests -v
 
 Project is installable as a Python package.
 
-### Install
+### Installation
 
 ```bash
 pip install .
@@ -347,7 +501,7 @@ pip install .
 
 Implemented using GitHub Actions.
 
-Workflow file:
+### Workflow File
 
 ```text
 .github/workflows/ci.yml
@@ -357,9 +511,8 @@ Workflow file:
 
 - Install Dependencies
 - Package Validation
-- Bronze Tests
-- Silver Tests
-- Gold Tests
+- Execute ETL Pipeline
+- Execute Automated Tests
 
 ---
 
@@ -371,13 +524,13 @@ Pipeline orchestration implemented using:
 src/main.py
 ```
 
-### Run Complete Pipeline
+### Execute Complete Pipeline
 
 ```bash
 python -m src.main
 ```
 
-Execution Sequence:
+### Execution Flow
 
 ```text
 Bronze Layer
@@ -398,13 +551,14 @@ Customer Gold
 - OOP Design
 - Modular Architecture
 - Reusable Components
-- Centralized Configuration
+- Configuration-Driven Design
 - Logging Framework
-- Exception Handling
+- Advanced Exception Handling
 - Automated Testing
 - Packaging
 - CI/CD
-- Orchestration Layer
+- Orchestration
+- Rejected Data Layer
 
 ---
 
@@ -420,8 +574,6 @@ docs/architecture_dag.txt
 
 ## Spark Optimizations
 
-The following Spark optimization techniques were implemented or considered during development:
-
 ### Coalesce
 
 Gold datasets use:
@@ -430,32 +582,63 @@ Gold datasets use:
 coalesce(1)
 ```
 
-to generate a single output file for easier business consumption.
+to produce business-friendly outputs.
 
 ### Pipeline Segregation
 
-The pipeline is separated into:
+Pipeline separated into:
 
-- Bronze
+- Bronze Layer
 - Silver Validation
 - Silver Cleaning
 - Gold Sales
 - Gold Customer
 
-This minimizes maintenance effort and isolates failures.
+to improve maintainability and fault isolation.
 
 ### Reusable Spark Session
 
-A centralized SparkSessionManager was implemented to avoid duplicate Spark configuration and improve maintainability.
+Implemented a centralized:
+
+```python
+SparkSessionManager
+```
+
+to avoid duplicate Spark initialization.
 
 ### Configuration Driven Design
 
-All paths are managed through:
+All configurable values are externalized through:
 
 ```yaml
 config.yaml
 ```
 
-This avoids hardcoded values and improves portability.
+reducing hardcoded business logic.
 
+---
 
+## Enhancements Beyond Requirements
+
+- Data Quality Framework
+- Rejected Data Layer
+- Advanced Exception Framework
+- YAML-Based Configuration Management
+- GitHub Actions CI/CD
+- Packaging using setuptools
+- End-to-End Orchestration
+- 40+ Automated Tests
+- Business-Oriented Data Cleansing Strategy
+- Customer KPI Generation
+- Common Gold Layer Key Design
+
+---
+
+## Future Enhancements
+
+- Data Quality Dashboard
+- Environment-Based Configuration
+- Incremental Processing
+- Monitoring & Alerting Framework
+- Cloud Deployment
+- Advanced Data Profiling
