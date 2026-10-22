@@ -35,24 +35,8 @@ jobs:
 
       - name: Execute ETL Pipeline
         run: |
-          python -m src.main    
+          python -m src.main
 
-      - name: Run Bronze Tests
+      - name: Run All Tests
         run: |
-          python -m pytest tests/test_bronze.py -v
-
-      - name: Run Silver Validator Tests
-        run: |
-          python -m pytest tests/test_silver_validator.py -v
-
-      - name: Run Silver Cleaning Tests
-        run: |
-          python -m pytest tests/test_silver_cleaning.py -v
-
-      - name: Run Sales Gold Tests
-        run: |
-          python -m pytest tests/test_sales_gold.py -v
-
-      - name: Run Customer Gold Tests
-        run: |
-          python -m pytest tests/test_customer_gold.py -v
+          python -m pytest tests -v
