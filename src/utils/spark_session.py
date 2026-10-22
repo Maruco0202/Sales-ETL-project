@@ -6,8 +6,9 @@ class SparkSessionManager:
     @staticmethod
     def get_spark_session():
 
+        builder = getattr(SparkSession, "builder")
         spark = (
-            SparkSession.builder
+            builder
             .appName("Sales_ETL_Pipeline")
             .master("local[*]")
             .getOrCreate()

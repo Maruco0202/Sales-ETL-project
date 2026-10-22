@@ -3,7 +3,10 @@ import sys
 from pyspark.sql.functions import (
     current_timestamp,
     current_date,
-    lit
+    lit,
+    col,
+    year,
+    to_date
 )
 
 from src.utils.spark_session import SparkSessionManager
@@ -82,10 +85,9 @@ class BronzeLoader:
 
     def add_metadata(self, df):
         """
-        Adds metadata columns required
-        for auditability and traceability.
+        Add metadata columns required for
+        auditability and partitioning.
         """
-
         try:
 
             self.logger.info(
@@ -108,6 +110,15 @@ class BronzeLoader:
                         self.config[
                             "source_file_name"
                         ]
+                    )
+                )
+                .withColumn(
+                    "order_year",
+                    year(
+                        to_date(
+                            col("order_date"),
+                            "dd-MM-yyyy"
+                        )
                     )
                 )
             )
@@ -149,6 +160,7 @@ class BronzeLoader:
             (
                 df.write
                 .mode("overwrite")
+                .partitionBy("order_year")
                 .parquet(
                     self.config[
                         "bronze_path"
@@ -172,26 +184,3 @@ class BronzeLoader:
                 sys,
                 "Bronze Layer"
             )
-
-
-if __name__ == "__main__":
-
-    bronze_loader = BronzeLoader()
-
-    df = (
-        bronze_loader
-        .read_source()
-    )
-
-    df = (
-        bronze_loader
-        .add_metadata(df)
-    )
-
-    bronze_loader.write_bronze(
-        df
-    )
-
-    print(
-        "Bronze Load Completed Successfully"
-    )

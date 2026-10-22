@@ -1,0 +1,19 @@
+row_id,order_id,order_date,ship_date,ship_mode,customer_id,customer_name,segment,country,city,product_id,product_name,quantity,sales_amount,ingestion_timestamp,load_date,source_file_name,order_year
+57,,05-09-2023,12-09-2023,Second Class,CUST2950,Sneha Gupta,Corporate,India,Pune,P1008,SSD,5,1146.9,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+555,,26-10-2023,30-10-2023,Standard Class,CUST1951,Daniel Taylor,Home Office,UK,Toronto,P1002,Keyboard,10,1746.82,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+1095,,03-07-2023,05-07-2023,First Class,CUST1387,Olivia Gupta,Corporate,Germany,Delhi,P1007,Router,4,3905.02,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+1237,,24-05-2023,27-05-2023,Second Class,CUST1962,Jane Patel,Corporate,UK,Pune,P1002,Keyboard,7,1750.69,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+2590,,29-09-2023,04-10-2023,Standard Class,CUST3475,Sarah Davis,Home Office,India,Bangalore,P1008,SSD,7,3751.58,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+2879,,01-08-2023,03-08-2023,Same Day,CUST3275,Emily Miller,Consumer,India,London,P1004,Monitor,3,2010.86,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+3202,,05-07-2023,11-07-2023,Second Class,CUST3338,Priya Brown,Corporate,Canada,Delhi,P1007,Router,4,4045.61,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+3439,,28-11-2023,07-12-2023,First Class,CUST3080,John Taylor,Consumer,UK,Mumbai,P1001,Laptop,4,1122.32,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+3991,,12-06-2023,19-06-2023,Standard Class,CUST2355,Sneha Patel,Home Office,UK,London,P1003,Mouse,7,4103.84,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+4321,,31-03-2023,09-04-2023,Same Day,CUST2350,Olivia Patel,Consumer,Canada,Bangalore,P1005,Headphones,7,2922.48,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+4611,,22-05-2023,26-05-2023,Standard Class,CUST2708,Robert Patel,Corporate,Canada,Mumbai,P1006,Printer,6,194.01,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+4841,,25-02-2023,26-02-2023,First Class,CUST3190,John Taylor,Corporate,UK,Toronto,P1004,Monitor,4,1307.1,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+5394,,23-03-2023,24-03-2023,Same Day,CUST1663,Jane Smith,Home Office,USA,Mumbai,P1003,Mouse,9,1072.18,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+5452,,07-05-2023,08-05-2023,First Class,CUST2220,Chris Miller,Home Office,India,New York,P1005,Headphones,7,180.22,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+5793,,18-02-2023,25-02-2023,First Class,CUST2747,Chris Patel,Consumer,India,Delhi,P1003,Mouse,3,1796.11,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+5930,,22-01-2023,01-02-2023,Second Class,CUST3288,Rahul Davis,Home Office,UnknownCountry,Delhi,P1008,SSD,2,675.71,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+5933,,16-04-2023,17-04-2023,First Class,CUST2368,Sarah Johnson,Home Office,UK,Delhi,P1001,Laptop,3,4578.29,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023
+5998,,12-03-2023,16-03-2023,First Class,CUST1294,Priya Sharma,Corporate,USA,Berlin,P1007,Router,3,3995.02,2026-10-22T22:49:41.614+05:30,2026-10-22,data.csv,2023

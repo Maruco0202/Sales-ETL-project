@@ -32,6 +32,8 @@ class TestBronzeLoader:
 
         assert "source_file_name" in df.columns
 
+        assert "order_year" in df.columns
+
     def test_metadata_values_created(self):
 
         df = self.bronze.read_source()
@@ -57,6 +59,14 @@ class TestBronzeLoader:
                 "source_file_name"
             ]
         )
+
+    def test_order_year_created(self):
+
+        df = self.bronze.read_source()
+
+        df = self.bronze.add_metadata(df)
+
+        assert "order_year" in df.columns
 
     def test_write_bronze_success(self):
 

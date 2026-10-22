@@ -1,10 +1,10 @@
-# Sales ETL Project
+# Sales ETL Pipeline
 
 ## Overview
 
 This project implements an end-to-end Data Engineering pipeline using PySpark and follows the Medallion Architecture pattern.
 
-Pipeline Flow:
+### Pipeline Flow
 
 ```text
 Source CSV
@@ -15,16 +15,19 @@ Silver Validation
     ↓
 Silver Cleaning
     ↓
+Silver Layer
+    ↓
 Gold Sales
     ↓
 Gold Customer
 ```
 
-The solution applies software engineering and production-oriented data engineering practices including:
+The solution applies enterprise-grade software engineering and data engineering principles including:
 
-- Modularization
 - OOP Design
-- Logging
+- Modular Architecture
+- Centralized Transformation Layer
+- Logging Framework
 - Advanced Exception Handling
 - Automated Testing
 - Configuration-Driven Design
@@ -33,6 +36,7 @@ The solution applies software engineering and production-oriented data engineeri
 - Data Quality Framework
 - Rejected Data Layer
 - Pipeline Orchestration
+- Partitioned Data Lake Design
 
 ---
 
@@ -43,9 +47,9 @@ The solution applies software engineering and production-oriented data engineeri
 - Apply Software Engineering Best Practices
 - Implement Logging and Advanced Error Handling
 - Create Automated Unit Tests
-- Package the project as an installable Python package
+- Package the Project as an Installable Python Package
 - Implement CI/CD using GitHub Actions
-- Create an Orchestrated ETL Execution Framework
+- Create an Orchestrated ETL Framework
 - Improve Data Quality while minimizing unnecessary data loss
 
 ---
@@ -70,7 +74,7 @@ Data Quality Report
 Silver Cleaning
     |
     v
-Silver Dataset
+Silver Layer
     |
     +----------------------+
     |                      |
@@ -83,7 +87,7 @@ Gold Sales Dataset   Gold Customer Dataset
 ## Project Structure
 
 ```text
-Use_Case_2
+Sales_ETL_Project
 
 ├── .github/
 │   └── workflows/
@@ -100,14 +104,32 @@ Use_Case_2
 ├── logs/
 │
 ├── src/
+│
 │   ├── config/
+│   │   └── config.yaml
+│   │
 │   ├── ingestion/
-│   ├── transformation/
+│   │   └── bronze_loader.py
+│   │
+│   ├── sales_data_pipeline/
+│   │   ├── pipeline.py
+│   │   └── transformations.py
+│   │
 │   ├── utils/
+│   │   ├── config_reader.py
+│   │   ├── exception.py
+│   │   ├── logger.py
+│   │   └── spark_session.py
+│   │
 │   └── main.py
 │
 ├── tests/
+│   ├── test_ingestion.py
+│   ├── test_pipeline.py
+│   ├── test_transformations.py
+│   └── test_utils.py
 │
+├── pyproject.toml
 ├── requirements.txt
 ├── setup.py
 └── README.md
@@ -115,26 +137,58 @@ Use_Case_2
 
 ---
 
+## Centralized Transformation Layer
+
+To improve maintainability and readability, all business transformations are centralized into:
+
+```text
+src/sales_data_pipeline/transformations.py
+```
+
+### Responsibilities
+
+- Silver Validation
+- Silver Cleaning
+- Sales Gold Processing
+- Customer Gold Processing
+- Data Quality Reporting
+- Rejected Data Management
+
+### Benefits
+
+- Reduced File Proliferation
+- Easier Navigation
+- Centralized Business Logic
+- Simplified Unit Testing
+- Improved Maintainability
+
+---
+
 ## Bronze Layer
 
 ### Responsibilities
 
-- Read source CSV
-- Add metadata columns
-- Store raw data without modification
-- Write Bronze Layer in Parquet format
+- Read Source CSV
+- Add Metadata Columns
+- Store Raw Data Without Modification
+- Partition Data by Year
+- Write Bronze Layer in Parquet Format
 
 ### Metadata Columns Added
 
 - ingestion_timestamp
 - load_date
 - source_file_name
+- order_year
 
 ### Metadata Purpose
 
-- ingestion_timestamp – Captures exact ingestion timestamp for auditability.
-- load_date – Stores pipeline execution date.
-- source_file_name – Maintains source lineage and traceability.
+| Column | Purpose |
+|----------|----------|
+| ingestion_timestamp | Captures exact ingestion timestamp |
+| load_date | Stores pipeline execution date |
+| source_file_name | Maintains source lineage |
+| order_year | Enables partition pruning and faster querying |
 
 ### Output
 
@@ -146,7 +200,7 @@ data/bronze/
 
 ## Silver Validation Layer
 
-Implemented data quality validations before applying any cleaning logic.
+Implemented before applying any cleaning logic.
 
 ### Completeness Checks
 
@@ -199,7 +253,7 @@ Contains:
 - Validation Rule Name
 - Error Count
 
-Example:
+Examples:
 
 ```text
 Null Order ID
@@ -214,16 +268,20 @@ Negative Sales
 
 ## Silver Cleaning Layer
 
-Instead of blindly deleting all problematic records, business-oriented cleansing strategies were implemented.
+Business-oriented cleansing strategies were applied.
 
 ### Rejected Records
 
-Records that could not be reliably corrected:
+Unrecoverable records are moved to the Rejected Layer.
 
-- NULL Order IDs
-- Future Order Dates
+Examples:
 
-Stored in:
+```text
+NULL Order IDs
+Future Order Dates
+```
+
+Output:
 
 ```text
 data/rejected/
@@ -232,46 +290,40 @@ data/rejected/
 Examples:
 
 ```text
-data/rejected/null_order_ids/
+data/rejected/null_order_ids
 
-data/rejected/future_order_dates/
+data/rejected/future_order_dates
 ```
 
 ### Standardized Attributes
 
-Descriptive attributes were standardized instead of removing entire records:
-
 ```text
 Invalid Country
-    ↓
+↓
 UNKNOWN_COUNTRY
 
 Invalid Ship Mode
-    ↓
+↓
 UNKNOWN_SHIP_MODE
 
 NULL Customer Name
-    ↓
+↓
 UNKNOWN_CUSTOMER
 ```
 
 ### Business Review Flags
 
-Records requiring business review are retained:
-
 ```text
 NULL Product ID
-    ↓
+↓
 MISSING_PRODUCT_ID
 
 Negative Sales
-    ↓
+↓
 REVIEW_REQUIRED
 ```
 
 ### Deduplication
-
-Duplicate records are removed using:
 
 ```python
 dropDuplicates(["row_id"])
@@ -285,19 +337,70 @@ data/silver/
 
 ---
 
-## Rejected Layer
+## Partitioning Strategy
 
-A dedicated rejected layer was implemented to preserve unrecoverable records rather than deleting them permanently.
+### Bronze Layer
 
-### Current Rejected Datasets
+Partitioned By:
 
 ```text
-data/rejected/
-
-    null_order_ids/
-
-    future_order_dates/
+order_year
 ```
+
+Output:
+
+```text
+data/bronze/
+├── order_year=2023
+├── order_year=2024
+├── order_year=2025
+└── order_year=2099
+```
+
+### Silver Layer
+
+Partitioned By:
+
+```text
+order_year
+```
+
+Output:
+
+```text
+data/silver/
+├── order_year=2023
+├── order_year=2024
+└── order_year=2025
+```
+
+Future-dated records are removed before writing Silver.
+
+### Sales Gold Layer
+
+Partitioned By:
+
+```text
+order_year
+```
+
+Output:
+
+```text
+data/gold/sales/
+├── order_year=2023
+├── order_year=2024
+└── order_year=2025
+```
+
+### Benefits
+
+- Faster Queries
+- Partition Pruning
+- Better Scalability
+- Production-Oriented Data Lake Design
+
+---
 
 ## Gold Sales Dataset
 
@@ -313,20 +416,13 @@ Business-ready sales reporting dataset.
 - ship_date
 - ship_mode
 - city
+- order_year
 
 ### Output
 
 ```text
-data/gold/sales_gold/
+data/gold/sales/
 ```
-
-### Common Key
-
-```text
-customer_id
-```
-
-acts as the shared key between Sales Gold and Customer Gold datasets.
 
 ---
 
@@ -354,28 +450,21 @@ Customer Analytics and KPI Generation.
 ### Output
 
 ```text
-data/gold/customer_gold/
+data/gold/customer/
 ```
-
-### Common Key
-
-```text
-customer_id
-```
-
-acts as the shared key between Sales Gold and Customer Gold datasets.
 
 ---
 
-## Logging
+## Logging Framework
 
-Centralized logging framework implemented using Python Logging.
+Centralized logging implemented using Python Logging.
 
 ### Features
 
 - File Logging
 - Console Logging
-- YAML-Driven Log Level Configuration
+- Configurable Log Levels
+- Centralized Log Management
 
 ### Log Levels
 
@@ -383,7 +472,7 @@ Centralized logging framework implemented using Python Logging.
 - WARNING
 - ERROR
 
-### Output Location
+### Output
 
 ```text
 logs/
@@ -393,48 +482,59 @@ logs/
 
 ## Advanced Exception Handling
 
-Implemented a custom ETL exception framework.
+Implemented using:
+
+```python
+PipelineException
+```
+
+and
+
+```python
+_handle_exception()
+```
 
 ### Captured Information
 
 - Timestamp
 - ETL Layer
+- Error Type
 - File Name
 - Function Name
 - Line Number
-- Error Type
 - Root Cause
 
 ### Benefits
 
+- Centralized Exception Handling
 - Faster Debugging
-- Better Production Support
+- Improved Production Support
 - Standardized Error Reporting
 
 ---
 
 ## Configuration Driven Design
 
-Project behavior is externalized using:
+Configuration stored in:
 
 ```text
 src/config/config.yaml
 ```
 
-### Configuration Includes
+### Contains
 
 - Data Paths
 - Validation Rules
 - Logging Configuration
 - Spark Configuration
 - Data Quality Thresholds
-- Rejected Layer Configuration
+- Rejected Layer Settings
 
 ### Benefits
 
 - Reduced Hardcoding
-- Improved Maintainability
-- Easier Environment Migration
+- Easier Maintenance
+- Environment Portability
 
 ---
 
@@ -442,40 +542,39 @@ src/config/config.yaml
 
 Implemented using PyTest.
 
-### Utility Layer Tests
+### Test Coverage
+
+#### test_ingestion.py
+
+- Source Read Validation
+- Metadata Validation
+- Bronze Write Validation
+- Wrong File Path Validation
+
+#### test_pipeline.py
+
+- Extract Layer
+- Validate Layer
+- Clean Layer
+- Transform Layer
+- Load Layer
+- End-to-End Run Validation
+
+#### test_transformations.py
+
+- Validation Rules
+- Cleaning Rules
+- Silver Processing
+- Sales Gold Processing
+- Customer Gold Processing
+- Report Generation
+
+#### test_utils.py
 
 - Config Reader
 - Logger
 - Exception Framework
 - Spark Session
-
-### Bronze Layer Tests
-
-- Read Source
-- Metadata Validation
-- Write Validation
-- Wrong Path Validation
-
-### Silver Validation Tests
-
-- Data Quality Validation
-- Country Validation
-- Ship Mode Validation
-- Null Validation
-
-### Silver Cleaning Tests
-
-- Record Rejection
-- Data Standardization
-- Review Flag Generation
-- Deduplication Logic
-- Rejected Layer Validation
-
-### Gold Layer Tests
-
-- Sales Gold Dataset Validation
-- Customer Gold Dataset Validation
-- Customer KPI Validation
 
 ### Test Execution
 
@@ -483,16 +582,28 @@ Implemented using PyTest.
 python -m pytest tests -v
 ```
 
+### Current Coverage
+
+```text
+37 Passing Tests
+```
+
 ---
 
 ## Packaging
 
-Project is installable as a Python package.
+Installable Python Package.
 
 ### Installation
 
 ```bash
 pip install .
+```
+
+or
+
+```bash
+pip install -e .
 ```
 
 ---
@@ -501,7 +612,7 @@ pip install .
 
 Implemented using GitHub Actions.
 
-### Workflow File
+### Workflow
 
 ```text
 .github/workflows/ci.yml
@@ -511,20 +622,20 @@ Implemented using GitHub Actions.
 
 - Install Dependencies
 - Package Validation
+- Execute Unit Tests
 - Execute ETL Pipeline
-- Execute Automated Tests
 
 ---
 
 ## Orchestration
 
-Pipeline orchestration implemented using:
+Pipeline orchestration implemented via:
 
 ```text
 src/main.py
 ```
 
-### Execute Complete Pipeline
+### Execute Full Pipeline
 
 ```bash
 python -m src.main
@@ -533,15 +644,15 @@ python -m src.main
 ### Execution Flow
 
 ```text
-Bronze Layer
-    ↓
+Bronze
+ ↓
 Silver Validation
-    ↓
+ ↓
 Silver Cleaning
-    ↓
-Sales Gold
-    ↓
-Customer Gold
+ ↓
+Gold Sales
+ ↓
+Gold Customer
 ```
 
 ---
@@ -550,8 +661,9 @@ Customer Gold
 
 - OOP Design
 - Modular Architecture
+- Centralized Transformation Layer
 - Reusable Components
-- Configuration-Driven Design
+- Configuration Driven Design
 - Logging Framework
 - Advanced Exception Handling
 - Automated Testing
@@ -559,62 +671,7 @@ Customer Gold
 - CI/CD
 - Orchestration
 - Rejected Data Layer
-
----
-
-## Architecture DAG
-
-See:
-
-```text
-docs/architecture_dag.txt
-```
-
----
-
-## Spark Optimizations
-
-### Coalesce
-
-Gold datasets use:
-
-```python
-coalesce(1)
-```
-
-to produce business-friendly outputs.
-
-### Pipeline Segregation
-
-Pipeline separated into:
-
-- Bronze Layer
-- Silver Validation
-- Silver Cleaning
-- Gold Sales
-- Gold Customer
-
-to improve maintainability and fault isolation.
-
-### Reusable Spark Session
-
-Implemented a centralized:
-
-```python
-SparkSessionManager
-```
-
-to avoid duplicate Spark initialization.
-
-### Configuration Driven Design
-
-All configurable values are externalized through:
-
-```yaml
-config.yaml
-```
-
-reducing hardcoded business logic.
+- Partitioned Data Lake Design
 
 ---
 
@@ -622,23 +679,28 @@ reducing hardcoded business logic.
 
 - Data Quality Framework
 - Rejected Data Layer
+- Centralized Transformation Layer
 - Advanced Exception Framework
-- YAML-Based Configuration Management
+- YAML Configuration Management
+- Partitioned Data Lake Architecture
+- Python Package Distribution
 - GitHub Actions CI/CD
-- Packaging using setuptools
-- End-to-End Orchestration
-- 40+ Automated Tests
-- Business-Oriented Data Cleansing Strategy
+- 37 Automated Unit Tests
+- Business-Oriented Data Cleansing Framework
 - Customer KPI Generation
-- Common Gold Layer Key Design
+- Data Quality Reporting
 
 ---
 
 ## Future Enhancements
 
-- Data Quality Dashboard
-- Environment-Based Configuration
+- Apache Airflow Orchestration
+- Azure Data Factory Integration
+- Delta Lake Implementation
 - Incremental Processing
+- Data Quality Dashboard
 - Monitoring & Alerting Framework
-- Cloud Deployment
-- Advanced Data Profiling
+- Environment-Based Configuration
+- ADLS / S3 Integration
+- Great Expectations Integration
+- Automated Data Profiling
