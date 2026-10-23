@@ -39,6 +39,65 @@ The solution applies enterprise-grade software engineering and data engineering 
 - Partitioned Data Lake Design
 
 ---
+## Quick Start
+
+### Prerequisites
+
+Before running the project, ensure the following are installed:
+
+- Python 3.12+
+- Java 8 or above
+- Apache Spark / PySpark
+
+### Clone Repository
+
+```bash
+git clone https://github.com/Maruco0202/Sales-ETL-project
+cd Sales_ETL_Project
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+or
+
+```bash
+pip install .
+```
+
+### Execute Complete ETL Pipeline
+
+```bash
+python -m src.main
+```
+
+### Execute Unit Tests
+
+```bash
+python -m pytest tests -v
+```
+
+### Expected Outputs
+
+After successful execution, the pipeline generates:
+
+```text
+data/
+├── bronze/
+├── silver/
+├── gold/
+├── rejected/
+└── reports/
+```
+
+Generated Data Quality Report:
+
+```text
+data/reports/data_quality_report.csv
+```
 
 ## Project Objectives
 
@@ -82,8 +141,6 @@ Silver Layer
 Gold Sales Dataset   Gold Customer Dataset
 ```
 
----
-
 ## Project Structure
 
 ```text
@@ -94,56 +151,124 @@ Sales_ETL_Project
 │       └── ci.yml
 │
 ├── data/
-│   ├── source/
-│   ├── bronze/
-│   ├── silver/
-│   ├── gold/
-│   ├── rejected/
-│   └── reports/
-│
 ├── logs/
 │
 ├── src/
-│
 │   ├── config/
-│   │   └── config.yaml
-│   │
 │   ├── ingestion/
-│   │   └── bronze_loader.py
-│   │
 │   ├── sales_data_pipeline/
-│   │   ├── pipeline.py
-│   │   └── transformations.py
-│   │
 │   ├── utils/
-│   │   ├── config_reader.py
-│   │   ├── exception.py
-│   │   ├── logger.py
-│   │   └── spark_session.py
-│   │
 │   └── main.py
 │
 ├── tests/
-│   ├── test_ingestion.py
-│   ├── test_pipeline.py
-│   ├── test_transformations.py
-│   └── test_utils.py
+│   ├── ingestion/
+│   │   └── test_ingestion.py
+│   │
+│   ├── pipeline/
+│   │   ├── test_pipeline.py
+│   │   └── test_transformations.py
+│   │
+│   └── utils/
+│       └── test_utils.py
 │
 ├── pyproject.toml
 ├── requirements.txt
 ├── setup.py
 └── README.md
 ```
-
 ---
+## Design Decisions
 
-## Centralized Transformation Layer
+### Centralized Transformation Layer
 
-To improve maintainability and readability, all business transformations are centralized into:
+All validation, cleaning, Sales Gold processing and Customer Gold processing logic has been centralized into:
+
+src/sales_data_pipeline/transformations.py
+
+This reduces file proliferation and improves maintainability
+
+### Medallion Architecture
+
+The project follows the Medallion Architecture pattern:
 
 ```text
-src/sales_data_pipeline/transformations.py
+Bronze → Silver → Gold
 ```
+
+to progressively improve data quality and business usability.
+
+### Pipeline Orchestration
+
+The complete ETL workflow is orchestrated through:
+
+```text
+src/sales_data_pipeline/pipeline.py
+```
+
+using the following execution flow:
+
+```text
+Extract
+    ↓
+Validate
+    ↓
+Clean
+    ↓
+Transform
+    ↓
+Load
+```
+
+### Rejected Data Strategy
+
+Instead of permanently deleting problematic records, unrecoverable records are preserved in:
+
+```text
+data/rejected/
+```
+
+for auditability and future business review.
+
+### Data Quality First Approach
+
+Validation rules are executed before cleaning to ensure complete visibility into data quality issues before data modifications are applied.
+
+### Partitioning Strategy
+
+Bronze, Silver and Sales Gold datasets are partitioned by:
+
+```text
+order_year
+```
+
+to improve scalability, partition pruning and query performance.
+
+### Configuration Driven Design
+
+Business rules, data paths and logging configuration are externalized through:
+
+```text
+config.yaml
+```
+
+reducing hardcoded values and improving maintainability.
+
+### Centralized Exception Handling
+
+A reusable exception framework implemented using:
+
+```python
+PipelineException
+```
+
+and
+
+```python
+_handle_exception()
+```
+
+provides consistent error handling and easier debugging.
+
 
 ### Responsibilities
 
@@ -585,7 +710,7 @@ python -m pytest tests -v
 ### Current Coverage
 
 ```text
-37 Passing Tests
+59 Passing Tests
 ```
 
 ---
@@ -685,7 +810,7 @@ Gold Customer
 - Partitioned Data Lake Architecture
 - Python Package Distribution
 - GitHub Actions CI/CD
-- 37 Automated Unit Tests
+- 59 Automated Unit Tests
 - Business-Oriented Data Cleansing Framework
 - Customer KPI Generation
 - Data Quality Reporting
