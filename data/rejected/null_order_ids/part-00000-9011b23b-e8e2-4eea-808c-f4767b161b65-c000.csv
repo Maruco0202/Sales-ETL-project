@@ -1,0 +1,15 @@
+row_id,order_id,order_date,ship_date,ship_mode,customer_id,customer_name,segment,country,city,product_id,product_name,quantity,sales_amount,ingestion_timestamp,load_date,source_file_name,order_year
+543,,10-09-2024,13-09-2024,Second Class,CUST1354,Robert Taylor,Corporate,USA,Berlin,P1003,Mouse,8,1431.9,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+661,,19-02-2024,23-02-2024,Standard Class,CUST1151,Amit Patel,Corporate,USA,New York,P1005,Headphones,4,509.46,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+1301,,22-10-2024,31-10-2024,Standard Class,CUST2562,Emily Smith,Consumer,India,Delhi,P1004,Monitor,2,3096.48,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+1566,,31-01-2024,09-02-2024,Same Day,CUST3269,Emily Brown,Corporate,UK,Delhi,P1001,Laptop,5,683.19,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+1753,,01-06-2024,04-06-2024,Second Class,CUST3493,Michael Johnson,Home Office,Germany,Bangalore,P1004,Monitor,6,4493.67,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+2179,,27-06-2024,07-07-2024,Standard Class,CUST2788,David Johnson,Home Office,UK,Berlin,P1003,Mouse,9,4903.69,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+2583,,10-08-2024,17-08-2024,Same Day,CUST1349,John Wilson,Corporate,India,Pune,P1001,Laptop,2,4082.18,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+3446,,08-10-2024,10-10-2024,Standard Class,CUST2169,Rahul Miller,Corporate,India,New York,P1004,Monitor,4,4639.23,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+3926,,03-12-2024,08-12-2024,Standard Class,CUST2386,Anjali Smith,Consumer,Germany,Pune,P1002,Keyboard,7,2429.82,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+4109,,11-07-2024,14-07-2024,Second Class,CUST2363,John Miller,Corporate,Germany,Pune,P1005,Headphones,4,1711.47,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+4737,,06-10-2024,07-10-2024,Standard Class,CUST2815,Chris Sharma,Corporate,India,Berlin,P1004,Monitor,1,1966.11,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+4815,,12-08-2024,18-08-2024,Standard Class,CUST3167,Rahul Taylor,Consumer,UK,Toronto,P1007,Router,7,400.88,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+5831,,14-05-2024,17-05-2024,Same Day,CUST1347,Rahul Wilson,Home Office,India,Mumbai,P1004,Monitor,3,4293.41,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024
+5969,,19-02-2024,24-02-2024,Same Day,CUST1392,Chris Patel,Consumer,Germany,Toronto,P1005,Headphones,9,611.32,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2024

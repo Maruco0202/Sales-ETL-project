@@ -1,0 +1,9 @@
+row_id,order_id,order_date,ship_date,ship_mode,customer_id,customer_name,segment,country,city,product_id,product_name,quantity,sales_amount,ingestion_timestamp,load_date,source_file_name,order_year
+546,,10-02-2025,11-02-2025,Second Class,CUST1543,,Consumer,India,Mumbai,P1007,Router,8,3361.73,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+629,,06-06-2025,09-06-2025,First Class,CUST1383,Sarah Wilson,Consumer,USA,New York,P1002,Keyboard,10,4459.93,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+964,,21-02-2025,01-03-2025,Standard Class,CUST3043,Daniel Smith,Corporate,UK,Toronto,P1002,Keyboard,5,4144.54,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+1107,,28-03-2025,29-03-2025,First Class,CUST1066,Rahul Sharma,Consumer,Germany,London,P1001,Laptop,9,2485.45,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+3093,,13-05-2025,16-05-2025,Same Day,CUST2921,David Smith,Home Office,UK,Bangalore,,Printer,7,733.46,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+4027,,03-03-2025,08-03-2025,Same Day,CUST1514,Olivia Miller,Home Office,India,Toronto,P1002,Keyboard,3,2760.33,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+4644,,11-01-2025,13-01-2025,Standard Class,CUST3102,Priya Davis,Consumer,India,Mumbai,P1001,Laptop,3,2490.25,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
+4972,,28-04-2025,30-04-2025,First Class,CUST2485,Robert Patel,Consumer,UK,Berlin,P1005,Headphones,6,1057.83,2026-10-23T09:55:17.187+05:30,2026-10-23,data.csv,2025
