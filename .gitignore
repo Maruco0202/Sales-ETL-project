@@ -11,5 +11,7 @@ logs/*.log
 data/bronze/
 data/silver/
 data/gold/
+data/rejected/
+data/reports/
 
 .vscode/
